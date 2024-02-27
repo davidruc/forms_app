@@ -21,9 +21,8 @@ class _BlocCounterView extends StatelessWidget {
 
   void increaseCounterBy(BuildContext context, [int amount = 1]){
     context.read<CounterBloc>()
-      .add( CounterIncreased(value: amount) );
+      .increaseBy(amount);
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +35,7 @@ class _BlocCounterView extends StatelessWidget {
          
         actions: [
           IconButton(
-          onPressed: () => context.read<CounterBloc>().add( const CounterReload() ),
+          onPressed: () => context.read<CounterBloc>().refresh(),
           icon: const Icon(Icons.refresh_rounded))
         ],
       ),

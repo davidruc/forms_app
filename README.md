@@ -519,3 +519,38 @@ void increaseCounterBy(BuildContext context, [int amount = 1]){
 ```
 
 Salvo que ahora, no puedo acceder directamente al método si no que toca utilizar el .add para acceder al evento que necesitamos.
+
+
+
+-------
+
+Hay otra forma de manejar las llamadas a los métodos para centralizar la lógica en un sólo lado: 
+
+En el archivo counter_bloc voy a crear dos nuevos métodos: 
+
+```dart
+void increaseBy( [int value = 1] ){
+  add( CounterIncreased(value: value));
+}
+
+void refresh() {
+  add( const CounterReload() );
+}
+```
+
+De esta forma ahora en nuestro screen van a cambiar varias cosas:
+ 
+```dart
+void increaseCounterBy(BuildContext context, [int amount = 1]){
+  context.read<CounterBloc>()
+    .add( CounterIncreased(value: amount) );
+}
+
+// Pasa a verse así
+void increaseCounterBy(BuildContext context, [int amount = 1]){
+  context.read<CounterBloc>()
+      .increaseBy(amount);
+}
+```
+
+Lo mismo con todos lo métodos que usaban el .add y el método directamente pasan a ser un poco más sencillos. Además no tenemos que aprendernos como se llama el método.
