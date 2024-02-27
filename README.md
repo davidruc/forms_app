@@ -375,6 +375,8 @@ class CounterState extends Equatable{
 
   //? Code ...
   
+
+  // Si llego a tener otra propiedad pero no la uso simplemente no la va a tomar en cuenta en el proceso de comparación.
   @override
   List<Object> get props => [counter, transactionCount];
 }
@@ -409,3 +411,111 @@ return Scaffold(
 
 ## Flutter_bloc
 
+Creando dentro de la carpeta de mis providers la carpeta por dejecto de bloc. 
+
+En esta creación tenemos 3 archivos, el counter_bloc, el counter_event y el counter_state. El counter_event se genera ya que flutter_bloc cambia su estado dependiendo de un evento. O sea, un evento es el que lleva el cambio del estado.
+
+Por defecto instala en el state equatable. 
+
+### counter_event
+
+El counter event es útil porque me permite poder decir que tipo de evento va a recibir mi bloc.
+
+```dart
+part of 'counter_bloc.dart';
+
+abstract class CounterEvent extends Equatable {
+  const CounterEvent();
+
+  @override
+  List<Object> get props => [];
+}
+
+class CounterIncreased extends CounterEvent{
+  final int value;
+  const CounterIncreased({required this.value});
+}
+```
+
+### counter_bloc
+
+Aquí realmente lo que tenemos es un contructor e inicializa el state:
+
+```dart
+ CounterBloc() : super(const CounterState()) {
+    on<CounterEvent>((event, emit) {
+      // TODO: implement event handler
+    });
+  }
+```
+
+y por dentro tenemos el cuerpo del constructor, dentro estamos definiendo un manejador de un counterEvent.
+
+Por lo que lo debo modificar de la siguiente manera para que sea completamente válido en mi código: 
+
+```dart 
+CounterBloc() : super(const CounterState()) {
+  on<CounterIncreased>((event, emit) {
+    emit(state.copyWith(
+      counter: state.counter + event.value,
+      transactionCount: state.transactionCount + 1  
+    ));
+  });
+}
+```
+
+Sin embargo, es posible simplificar este manejador de evento: 
+
+```dart 
+CounterBloc() : super(const CounterState()) {
+    on<CounterIncreased>( _onCounterIncreased );
+  }
+
+  void _onCounterIncreased(CounterIncreased event, Emitter<CounterState> emit) {
+    emit(state.copyWith(
+        counter: state.counter + event.value,
+        transactionCount: state.transactionCount + 1  
+    ));
+  }
+```
+
+Esto con el objetivo de que cuando tenga varios manejadores on, no se vuelva complicado de leer el código.
+
+
+### Usar el counter bloc
+
+Se usa muymuymuy similar a cubits: 
+
+```dart
+class BlocCounterScreen extends StatelessWidget {
+  const BlocCounterScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => CounterBloc(),
+      child: const _BlocCounterView());
+  }
+}
+```
+
+Se envuelve el widget en un BlocProvider y luego se implementa de varias formas. Una de ellas es la siguiente: 
+
+```dart
+child: context.select((CounterBloc counterBloc) => Text("counter value: ${counterBloc.state.counter}")) 
+```
+
+Donde utilizo el select para acceder a mi estado del CounterBloc.
+
+------
+
+Además también puedo crear un método para utilizar la función de aumentar el valor del contador: 
+
+```dart
+void increaseCounterBy(BuildContext context, [int amount = 1]){
+  context.read<CounterBloc>()
+    .add( CounterIncreased(value: amount) );
+}
+```
+
+Salvo que ahora, no puedo acceder directamente al método si no que toca utilizar el .add para acceder al evento que necesitamos.

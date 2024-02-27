@@ -19,7 +19,7 @@ class HomeScreen extends StatelessWidget {
           
           ListTile(
             title: const Text('Flutter_Bloc'),
-            subtitle: const Text('Gestor de estado robusto'),
+            subtitle: const Text('Gestor de estado compuesto'),
             trailing: const Icon(Icons.arrow_forward_ios_rounded),
             onTap: () => context.push("/blocs"),
           ),
