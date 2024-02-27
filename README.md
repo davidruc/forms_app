@@ -45,8 +45,10 @@ Recordando que es importante siempre quitar la opción de debugg en nuestro main
 
 * Creamos el directorio presentation > screens > home_screen.dart 
 
+* Siempre que manejamos gestores de estado los manejamos dentro de la capa de presentación y se le asigna el nombre del gesto de estado que vamos a utilizar, por lo que en este caso que es bloc quedaría así: presentation > blocs > clickizq + Cubit:new Cubit
 
 
+*Tener instalada la extención oficial de bloc es importante porque da pie a la creación de la configuración inicial rápida*
 ![Ejemplo-Estructuración-Directorios]()
 
 
@@ -197,4 +199,155 @@ floatingActionButton: Column(
     ),
   ],
 ),
+```
+
+
+## Cubit -> Gestor de estado:
+
+Viene incluido con flutter bloc. Por lo que basta con instalarlo para poderle dar uso:
+
+```bash
+flutter pub add flutter_bloc
+```
+
+Viene con widgets espeçificos para usar BLoC. 
+
+Para la configuración inicial es importante notar que por defecto al usar la extensión los archivos vienen con una serie de configuraciones. Algunas de ellas pueden ser modificadas, como por ejemplo la importación de bloc, es flutter_bloc, o la importación extra que trae no es necesaria.
+
+Vemos que el cubit_state es parte del counter_cubit por lo que es como una extensión del mismo. 
+
+Creando nuestra propia clase definimos los estados que deseamos mantener en nuestro proyecto: 
+
+```dart
+class CounterState{
+  final int counter;
+  final int transactionCount;
+
+  CounterState({
+     this.counter = 0, 
+     this.transactionCount = 0
+  });
+}
+```
+
+Una vez creamos el estado, debemos crear una forma de emitir dicho estado para poder estarlo cambiando, un nuevo estado va a ser una nueva instancia de el estado actual
+
+```dart
+copyWith({
+    int? counter,
+    int? transactionCount,
+  }) => CounterState(
+    counter: counter ?? this.counter,
+    transactionCount: transactionCount ?? this.transactionCount
+  );
+```
+
+Usando el copyWith que es un método ya propio de flutter vamos a tener un método para cambiar el constructor y así actualizar mi estado. Es un método muy útil.
+
+Luego en nuestro counter_state vamos a enviar la instancia de counterState() y esto es todo lo que necesitamos. Una estado.
+
+* En el counterCubit podríamos asimilarlo como si fuera un provider, podemos tener métodos, propiedades propios del cubit que no estan amarradas al estado. O recibir información de otro cubit. Entonces podemos hacer algo como esto: 
+
+```dart
+class CounterCubit extends Cubit<CounterState> {
+  CounterCubit() : super(CounterState( counter: 5));
+
+  void increaseBy (int value) {
+    // code ..
+  }
+
+  void reset() {
+    // code ..
+  }
+}
+```
+
+Pero ojo! yo no puedo cambiar el estado, ya que este es inmutable, estoy definiendo sus valores como final. Si quiero emitir un nuevo estado debo hacerlo así:
+
+```dart 
+
+void increaseBy (int value) {
+    // Forma incorrecta:
+    state.counter =+ value;
+
+    // Forma correcta: 
+    emit( state.copyWith(
+      counter: state.counter + value,
+      transactionCount: state.transactionCount + 1
+    ));
+  }
+```
+
+De esta forma ya creamos un nuevo cubit, que puede ser utilizado en nuestros componentes fácilmente.
+
+### consumiendo el counter_cubit
+
+Ojo! No se utiliza el state, si no el cubit. 
+
+Se usa identicamente igual que Provider. En la screen donde lo quiero utilizar o en su defecto dependiendo del alcance que quiera alcanzar lo puedo poner en el main por ejemplo para decir que va a vivir a lo largo de toda la aplicación.
+
+Necesito envolver (para envolverlo simplemente lo extraigo todo en un nuevo widget) todos los widgets que pueden tener acceso a mi cubit en un BlocProvider:
+
+```dart
+class CubitCounterScreen extends StatelessWidget {
+  const CubitCounterScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => CounterCubit(),
+      child: _CubitCounterView());
+  }
+}
+```
+
+BlocProvider necesita un create y tiene que regresar la instancia de nuestra clase, en este caso CounterCubit().
+
+De esta forma tengo acceso a este cubit en toooda la vista, pero por fuera no tienen acceso porque están por fuera de ese buildContext. Se puede usar de muchas formas, y una de las particularidades es que con flutter_bloc yo puedo indicarle a mi aplicación que fragmento de código necesito que cambie sin necesidad de pasar por condiciones como hace riverpod.
+
+Para hacerlo hay que envolver el widget que querramos cambiar en un blocBuilder
+
+```dart
+child: BlocBuilder<SubjectBloc, SubjectState>(
+    builder: (context, state) {
+      return Text("counter value: ---");
+    },
+  ),
+```
+Se modifican los parámetros de la función y quedaría así:
+
+```dart
+ child: BlocBuilder<CounterCubit, CounterState>(
+    builder: (context, state) {
+      return Text("counter value: ${state.counter}");
+    },
+  ),
+```
+
+Posee una característica que lo vuelve mucho más estricto, donde podemos decirle que únicamente cambie cuando realmente mi valor sea diferente:
+
+```dart
+child: BlocBuilder<CounterCubit, CounterState>(
+  buildWhen: (previous, current) => current.counter != previous.counter
+    builder: (context, state) {
+      return Text("counter value: ${state.counter}");
+    },
+  ),
+```
+
+Así solo se volverá a reconstruir si son diferentes. Pero hay una manera de evitar escribir este código.
+
+* También hay otras formas de estar escuchando los cambios de una forma más tradicional, donde con el watch cada vez que se produzca un cambio se volverá a redibujar 
+
+```dart
+ @override
+  Widget build(BuildContext context) {
+
+    final counterState = context.watch<CounterCubit>().state;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Cubit Counter: ${counterState.transactionCount}"),
+        ...
+      ))}
 ```
