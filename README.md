@@ -104,8 +104,6 @@ La configuración general se encuentra en el archivo home_screen.dart, pero la c
 -----------
 Luego de la creación de este archivo es una buena práctica crear un archivo de exportaciones para evitar tener muchas imports en algunas partes de código. Lo único que se hace es exportar todo lo que contiene este archivo.
 
-Luego en el main se incluye en este widget para home.
-
 ### Configuración de las rutas:
 
 Dentro de la carpeta de router vamos a crear el app_router.dart, y además vamos a instalar la dependencia de go_router:
@@ -114,6 +112,89 @@ Dentro de la carpeta de router vamos a crear el app_router.dart, y además vamos
 flutter pub add go_router
 ```
 
+Ahora dentro del archivo de app_router vamos a crear la configuración de enrutamiento:
+
+```dart
+import 'package:forms_app/presentation/screens/screens.dart';
+import 'package:go_router/go_router.dart';
+
+final appRouter = GoRouter(
+  routes: [
+    GoRoute(
+      path: "/",
+      builder: (context, state) => const HomeScreen(),
+    ),
+  ]
+);
+```
+-------
+De esta forma le estamos diciendo a la aplicación que utilice HomeScreen() como ruta por defecto. En mi main.dart vamos a poner lo siguiente:
+
+```dart
+class MainApp extends StatelessWidget {
+  const MainApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp.router(
+      routerConfig: appRouter,
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme().getTheme()
+    );
+  }
+}
+```
+
+Como se puede observar con el .router en el widget de MaterialApp le indicamos a flutter que vamos a usar un enrutador y en el routerConfig vamos a poner nuestro appRouter, que toma la configuración que creamos anteriormente en nuestro app_router.dart 
+
+
+### Procedimiento para la creación y enrutamiento de otro screen
+
+En el caso de crear otro screen simplemente hay que configurarlo como mejor se considere necesario. Luego se exporta en el archivo de screen de bareer y se utiliza en el router como una nueva ruta: 
+
+```dart
+GoRoute(
+  path: "/cubits",
+  builder: (context, state) => const CubitCounterScreen(),
+),
+```
+
+Luego en mi archivo donde definí el botón donde require la acción al evento del tap genero el siguiente código:
+
+```dart
+ListTile(
+  ...
+  onTap: () => context.push("/cubits"),
+),
+```
+
+De este modo al darle click a este ListTile va a navegar a la ubicación que definí en mi goRouter.
 
 
 
+* Importante: Cuando se crean floatingActionButtons hay que tener cuidado con sus identificadores, ya que si no se les pone un heroTag para saber cual es cual flutter arroja un error:
+
+```dart
+floatingActionButton: Column(
+  mainAxisAlignment: MainAxisAlignment.end,
+  children: [
+    FloatingActionButton(
+      heroTag: "1",
+      child: const Text("+3"),      
+      onPressed: () => {},
+    ),
+    const SizedBox(height: 10),
+    FloatingActionButton(
+      heroTag: "2",
+      child: const Text("+2"),      
+      onPressed: () => {},
+    ),
+    const SizedBox(height: 10),
+    FloatingActionButton(
+      heroTag: "3",
+      child: const Text("+1"),      
+      onPressed: () => {},
+    ),
+  ],
+),
+```
