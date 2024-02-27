@@ -351,3 +351,61 @@ Así solo se volverá a reconstruir si son diferentes. Pero hay una manera de ev
         ...
       ))}
 ```
+
+Sin embargo incluso usando el buildwhen, cuando utilizo esa definición de counter state el widget se redibuja muchas veces. Pero cubit nos da una herramienta que nos permite evitar esto. 
+
+### Equatable 
+
+Es una librería que resuelve un problema muy común cuando tennemos un objeto. Por ejemplo si creo una instancia de un objeto y luego creo una instancia con exactamente el mismo nombre, e inmediatamente las iguala siempre va a decir que es falso, ya que no ocupan el mismo lugar en memoria. 
+
+Así nuestro estado sea igual al anterior surge este mismo error.
+
+Equatable resulve este problema, para ello se instala: 
+
+```bash
+flutter pub add equatable 
+```
+
+La aplicación de esta librería se da inicialmente en el state del provider: Se extiende la clase de Equatable y despúes se crea el override mandando las propiedades que quiero comparar, si estas propiedades son iguales entonces el objeto en sí es igual: 
+
+```dart
+class CounterState extends Equatable{
+  final int counter;
+  final int transactionCount;
+
+  //? Code ...
+  
+  @override
+  List<Object> get props => [counter, transactionCount];
+}
+```
+
+Esto es muy útil porque si en un futuro creo dos objetos con el mismo id, nombre u otros datos puedo hacer comparaciones de manera correcta.
+
+--------
+
+* Sin embargo, tener este watch va a hacer que mi widget esté instanciandose cada vez que haga un cambio en mi estado. Por lo que mejor es hacer lo siguiente: 
+
+Pasamos de esto:
+```dart
+final counterState = context.watch<CounterCubit>().state;
+
+return Scaffold(
+  appBar: AppBar(
+    title: Text("Cubit Counter ${value.state.transactionCount}");    
+    //....
+    )),
+```
+
+A esto: 
+```dart
+return Scaffold(
+  appBar:  context.select((CounterCubit value) {
+      Text("Cubit Counter ${value.state.transactionCount}");
+    }),
+    //....
+    ),
+```
+
+## Flutter_bloc
+
