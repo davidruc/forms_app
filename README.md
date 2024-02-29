@@ -554,3 +554,115 @@ void increaseCounterBy(BuildContext context, [int amount = 1]){
 ```
 
 Lo mismo con todos lo métodos que usaban el .add y el método directamente pasan a ser un poco más sencillos. Además no tenemos que aprendernos como se llama el método.
+
+
+## Manejo de formularios: 
+
+Tenemos varios widgets para capturar texto: 
+* TextField()
+* TextFormField() se va a relacionar con un formulario, el textField no.
+
+Lo unico que se va a necesitar para hacer un formulario es un formulario.
+
+Por lo general se genera una llave para asociarle un estado. Para que despúes cualquier widget hijo del Form() va a ser parte de ese formulario, varia lógica y así.
+
+Aquí en flutter tenemos el validate directamente en el mismo formulario.
+
+Es importante tener en cuenta la posición del TextFormField y de la caja de texto. Por qué? Si tengo mucho contenido al abrir la caja de texto inmediatamente comienzan a existir problemas de que se excede la altura máxima: por lo que hace que configurar esto de mejores maneras. Siempre se recomienda que se envuelva en un widget que genere un scroll. Se envuelve el widget en general.
+```dart
+return SafeArea(
+  child: Padding(
+    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+    child: SingleChildScrollView(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          const FlutterLogo(size: 500,),
+          TextFormField(),
+        ],
+      ),
+    ),
+  ),
+);
+
+```
+
+El textFormField tiene muchas configuraciones diferentes, el tipo de texto, por ejemplo el obscureText: true por si es un password no se ve la contraseña, el tipo de keyboard. Como normalmente lo vamos a tener como un widget las vamos a recibir como props.
+
+También tenemos el validator, el onChange para leer los cambios en el input, y para hacer cambios visuales se utiliza el decoration: InputDecoration() que tiene muchas configuraciones para manejar los inputs.
+
+Hay demasiaaadas configuraciones para el inputDecoration(), una de estas es la siguiente:
+
+```dart
+decoration: InputDecoration( 
+  enabledBorder: border,
+  focusedBorder: border.copyWith( borderSide: BorderSide( color: colors.primary ) ),
+
+  label: Text("cualquier cosa"),
+  isDense: true,
+  hintText: 'este es el place holder',
+  focusColor: colors.primary
+  // icon: Icon(Icons.supervised_user_circle_rounded, color: colors.primary),
+  // suffixIcon: Icon(Icons.supervised_user_circle_rounded, color: colors.primary),
+  prefixIcon: Icon(Icons.supervised_user_circle_rounded, color: colors.primary),
+  
+  focusedErrorBorder: border.copyWith( borderSide: BorderSide( color: Colors.red.shade800 ) ),
+  errorBorder: border.copyWith( borderSide: BorderSide( color: Colors.red.shade800 ) ),
+  errorText: 'este es el error text'
+  ),
+```
+
+El siguiente widget es un TextFormField para un formulario que va a delegar los métodos y datos al lugar donde se consuma:
+
+```dart
+import 'package:flutter/material.dart';
+
+class CustomInputTextField extends StatelessWidget {
+
+  final String? label;
+  final String? hint;
+  final String? errorMessage;
+  final Function(String)? onChange;
+  final String? Function(String?)? validator;
+  const CustomInputTextField({
+    super.key, 
+    this.label, 
+    this.hint, 
+    this.errorMessage, 
+    this.onChange, 
+    this.validator});
+
+  @override
+  Widget build(BuildContext context) {
+
+    final colors = Theme.of(context).colorScheme;
+
+    final border = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(40),
+      // borderSide: BorderSide(color: colors.primary)
+    );
+
+    return TextFormField(
+      onChanged: onChange,
+      validator: validator,
+      decoration: InputDecoration( 
+        enabledBorder: border,
+        focusedBorder: border.copyWith( borderSide: BorderSide( color: colors.primary ) ),
+
+        label: label != null ? Text(label!) : null,
+        isDense: true,
+        hintText: hint,
+        focusColor: colors.primary,
+        // icon: Icon(Icons.supervised_user_circle_rounded, color: colors.primary),
+        // suffixIcon: Icon(Icons.supervised_user_circle_rounded, color: colors.primary),
+        prefixIcon: Icon(Icons.supervised_user_circle_rounded, color: colors.primary),
+        
+        focusedErrorBorder: border.copyWith( borderSide: BorderSide( color: Colors.red.shade800 ) ),
+        errorBorder: border.copyWith( borderSide: BorderSide( color: Colors.red.shade800 ) ),
+        errorText: errorMessage
+       ),
+      
+    );
+  }
+}
+```
