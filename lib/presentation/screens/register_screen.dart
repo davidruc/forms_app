@@ -13,7 +13,7 @@ class RegisterScreen extends StatelessWidget {
         title: const Text("Nuevo usuario"),
         centerTitle: true,
       ),
-      body:  BlocProvider(
+      body: BlocProvider(
         create: (context) => RegisterCubit(),
         child: const _RegisterView()),
     );
@@ -42,57 +42,35 @@ class _RegisterView extends StatelessWidget {
   }
 }
 
-class _RegisterInput extends StatefulWidget {
+class _RegisterInput extends StatelessWidget {
   const _RegisterInput();
 
-  @override
-  State<_RegisterInput> createState() => _RegisterInputState();
-}
-
-class _RegisterInputState extends State<_RegisterInput> {
-
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-
-
+  // final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   @override
   Widget build(BuildContext context) {
 
     final registerCubit = context.watch<RegisterCubit>();
+    final username = registerCubit.state.username;
+    final password = registerCubit.state.password;
+    final email = registerCubit.state.email;
 
     return Form(
-      key: _formKey,
+      // key: _formKey,
       child: Column(
         children: [
           CustomInputTextField(
             label: 'Nombre de usuario',
             hint: 'Ingrese su nombre completo',
-            onChange: (value) {
-              registerCubit.userChanged(value);
-              _formKey.currentState?.validate();
-            },
-            validator: (value) {
-              if ( value == null || value.isEmpty || value.trim().isEmpty) return 'este campo es requerido';
-              if (value.length < 6) return 'El usuario debe tener más de 6 letras';
-              return null;
-            },
+            onChange: registerCubit.userChanged,
+            errorMessage: username.errorMessage,
           ),
           
           const SizedBox(height: 10,),
           CustomInputTextField(
             label: 'Correo electrónico',
             hint: "Ingrese su correo electrónico",
-            onChange: (value) {
-              registerCubit.emailChanged(value);
-              _formKey.currentState?.validate();
-            },
-            validator: (value) {
-              if ( value == null || value.isEmpty || value.trim().isEmpty) return 'este campo es requerido';
-              final emailRegExp = RegExp(
-                r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$' 
-              );
-              if (!emailRegExp.hasMatch(value)) return 'Correo electrónico no válido';
-              return null;
-            },
+            onChange: registerCubit.emailChanged,
+            errorMessage: email.errorMessage,
           ),
           
           const SizedBox(height: 10,),
@@ -100,22 +78,15 @@ class _RegisterInputState extends State<_RegisterInput> {
             label: 'contraseña',
             hint: 'Ingrese una contraseña segura',
             isPassword: true,
-            onChange: (value) {
-              registerCubit.passwordChanged(value);
-              _formKey.currentState?.validate();
-            },
-            validator: (value) {
-              if ( value == null || value.isEmpty || value.trim().isEmpty) return 'este campo es requerido';
-              if (value.length < 6) return 'La contraseña debe contener almenos de 6 caractes';
-              return null;
-            },    
+            onChange: registerCubit.passwordChanged,
+            errorMessage: password.errorMessage,
+           
           ),
           const SizedBox(height: 20,),
           FilledButton.tonalIcon(
             onPressed: (){
-
-              final bool isValid = _formKey.currentState!.validate();
-              if(!isValid) return;
+              // final bool isValid = _formKey.currentState!.validate();
+              // if(!isValid) return;
               
               // Aquí iría envio http de la data
 
