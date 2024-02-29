@@ -666,3 +666,22 @@ class CustomInputTextField extends StatelessWidget {
   }
 }
 ```
+
+-------
+Para realizar el manejo tradicional de el formulario debemos volvelo un statefulWidget para poder alterar su estado. Y dentro del estado vamos a crearnos el key.
+
+```dart
+class _RegisterInputState extends State<_RegisterInput> {
+
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+
+  @override
+  Widget build(BuildContext context) {
+    return Form(
+      key: _formKey,
+    )}}
+```
+
+
+Hay formas de hacer la validación desde el mismo formulario, aquí realizo un commit para observar como es su funcionamiento.
