@@ -685,3 +685,5 @@ class _RegisterInputState extends State<_RegisterInput> {
 
 
 Hay formas de hacer la validación desde el mismo formulario, aquí realizo un commit para observar como es su funcionamiento.
+
+Si comienzo a escribir y tengo el error quiero que automáticamente se actualice, para esto vamos a necesitar un lógica más amplia.
